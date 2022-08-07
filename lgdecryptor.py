@@ -36,7 +36,6 @@ def decryptlg(gmailadress, lgeflock):
     h1_sha = sha1(gmailadress).hexdigest()
     # h1 is a list of 5 hexvalues as string
     h1 = []
-    getword(h1, h1_sha)
     for i in range (0, 5):
         h1.append(getword(h1_sha, i))
 
