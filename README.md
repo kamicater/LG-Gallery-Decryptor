@@ -5,11 +5,15 @@ Based on the paper **"A study on LG content lock and data aquisition from apps b
 
 Please use at your own advice. There is no error handling.
 
+## How to use:
+
+Create two folders ```encrypted``` and ```decrypted``` in the same directory.
+
 Create a file to run the decryption with multiple files:
 
 ```bash
 #!/bin/bash
-python decryptlg.py 20161230_133055.jpg.dm
-python decryptlg.py 20161230_134050.mp4.dm
+python decryptlg.py encrypted/20161230_133055.jpg.dm
+python decryptlg.py encrypted/20161230_134050.mp4.dm
 ...
 ```
