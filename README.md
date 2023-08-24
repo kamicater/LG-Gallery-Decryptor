@@ -13,7 +13,7 @@ Create a file to run the decryption with multiple files:
 
 ```bash
 #!/bin/bash
-python lgdecryptor.py encrypted/20161230_133055.jpg.dm
-python lgdecryptor.py encrypted/20161230_134050.mp4.dm
+python lgdecryptor.py 20161230_133055.jpg.dm
+python lgdecryptor.py 20161230_134050.mp4.dm
 ...
 ```
