@@ -5,6 +5,7 @@ from 28 September 2021
 Please use at your own advice. There are no error handlers.
 """
 
+import argparse
 import base64
 import binascii
 import re
@@ -57,7 +58,7 @@ def decryptlg(gmailadress, lgeflock):
     h2 = []
     for i in range (0, 5):
         h2.append(getword(h2_sha, i))
-    
+
     ###
     # Line 5 - 6
     # XOR of h2 with h2
@@ -66,7 +67,7 @@ def decryptlg(gmailadress, lgeflock):
 
     # concatenate h2 for SHA1 and convert to hex
     h2_concat = ''.join(map(str, h2)).encode('utf-8')
-    
+
     ###
     # Line 7
     # h3 is concatenation of parts of h2 and lgeflock
@@ -88,7 +89,7 @@ def decryptlg(gmailadress, lgeflock):
     # LGEID is unimportant because we don't need the gmailaddress to
     # match for authentication because we want to retrieve our own files
     # this part of the code is not tested
-    
+
     ###
     # Line 9
     # h4 is SHA1 of h2
@@ -113,7 +114,7 @@ def decryptlg(gmailadress, lgeflock):
     ###
     # Line 12
     # LGEID is base64 of h4
-    
+
     lgeid = base64.b64encode(h4_hex)
     lgeid_decoded = base64.b64decode(lgeid)
     return (dk, lgeid.decode('utf-8'))
@@ -142,41 +143,27 @@ def get_lgeflock_iv_imagestart(image_path):
 
     # iv is found with length of 16 bytes
     iv = cipher_header[endbyte:endbyte + 16]
-    
+
     # image starts at next byte after iv
     imagestartbyte = endbyte + 16
 
     return lgeflock, iv, imagestartbyte
 
-def main():
 
-    # your gmail address on your phone when the files have been encrypted
-    gmail = b'yourgmailaddress@gmail.com'
-    
-    # folders of encrypted and decrypted files
-    encrypt_dir = './encrypted'
-    decrypt_dir = ''
-
-    # the name of a single encrypted file with and without .dm suffix
-    image_filename = sys.argv[1]
-    image_filename_decrypted = image_filename.strip('.dm')
-
-    image_path_encrypted = os.path.join(encrypt_dir, image_filename)
-    image_path_decrypted = os.path.join(decrypt_dir, image_filename_decrypted)
-    
-    print("Start decrypting file", image_filename)
+def decrypt_file(input_file, output_file, gmail):
+    print(f"Decrypting file {input_file}")
 
     # get strings from the file header
-    lgeflock, iv, imagestartbyte = get_lgeflock_iv_imagestart(image_path_encrypted)
+    lgeflock, iv, imagestartbyte = get_lgeflock_iv_imagestart(input_file)
     print("lgeflock:", lgeflock.decode('utf-8'))
-    
+
     # iv is stored as byte array with length of 16 bytes
     # iv_hex is stored as hex string with length of 32 chars
     iv_hex = binascii.hexlify(bytearray(iv))
     print("iv:", iv_hex)
 
     # open encrypted image as bytes
-    cipher_file = open(image_path_encrypted, "rb")
+    cipher_file = open(input_file, "rb")
     # skip header and iv to image start
     cipher_file.seek(imagestartbyte)
     # read from seek to end
@@ -191,20 +178,58 @@ def main():
 
     key = bytes.fromhex(dk)
     print("Applying decryption key")
-    
+
     # AES decryption
     cipher = AES.new(key, AES.MODE_CBC, iv)
     plaintext = cipher.decrypt(cipher_body)
     print("Image decrypted")
 
     # save as image without .dm extension
-    out_file = open(image_path_decrypted, "wb")
+    out_file = open(output_file, "wb")
     out_file.write(plaintext)
     out_file.close()
-    print("Image saved as", image_filename_decrypted, "\n")
+    print("Image saved as", output_file, "\n")
 
-    # move decrypted image into decrypted subfolder
-    shutil.move(image_path_decrypted, 'decrypted/' + image_path_decrypted)
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-o", "--output-dir", default=os.getcwd(), help="change output directory for decrypted files [%(default)s]"
+    )
+    parser.add_argument(
+        "gmail", help="The gmail address on your phone when the files were encrypted"
+    )
+    parser.add_argument("files", nargs="+", help="File(s) to decrypt")
+
+    if argv is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(argv)
+
+    ext = ".dm"
+    failed = []
+    for file in args.files:
+        if not os.path.isfile(file):
+            print(f"File not found: '{file}'. Skipping...")
+            failed.append(file)
+            continue
+        # Strip ".dm"
+        if file.endswith(ext):
+            out_filename = file[:-len(ext)]
+        else:
+            out_filename = file
+        # make output path
+        outfile = os.path.abspath(os.path.join(args.output_dir, out_filename))
+        try:
+            decrypt_file(file, outfile, bytes(args.gmail, "utf-8"))
+        except Exception as e:
+            print(f"Error decrypting '{file}': {e}")
+            failed.append(file)
+    if failed:
+        print(
+            "Failed to decrypt file{}: {}".format(
+                "s" if len(failed) else "", ", ".join(f"'{i}'" for i in failed)
+            )
+        )
 
 if __name__ == "__main__":
     main()

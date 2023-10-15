@@ -5,15 +5,34 @@ Based on the paper **"A study on LG content lock and data aquisition from apps b
 
 Please use at your own advice. There is no error handling.
 
-## How to use:
-
-Create two folders ```encrypted``` and ```decrypted``` in the same directory.
-
-Create a file to run the decryption with multiple files:
-
+## Installation
+Install the needed dependencies:
 ```bash
-#!/bin/bash
-python lgdecryptor.py 20161230_133055.jpg.dm
-python lgdecryptor.py 20161230_134050.mp4.dm
-...
+python3 -m pip install -r requirements.txt
+```
+
+## How to use:
+You can use the help to see an explanation of all of the arguments:
+```bash
+python3 lgdecryptor.py --help
+```
+
+Example decrypting a single file:
+```bash
+python3 lgdecryptor.py youremail@gmail.com 20161230_133055.jpg.dm
+```
+
+Example decrypting multiple files:
+```bash
+python3 lgdecryptor.py youremail@gmail.com 20161230_133055.jpg.dm 20161230_134050.mp4.dm
+```
+
+Example decrypting multiple files using globbing:
+```bash
+python3 lgdecryptor.py youremail@gmail.com *.dm
+```
+
+The output directory can be changed as so:
+```bash
+python3 lgdecryptor.py -o decrypted/ youremail@gmail.com *.dm
 ```
