@@ -204,7 +204,23 @@ def main(argv=None):
         args = parser.parse_args()
     else:
         args = parser.parse_args(argv)
+        
+    directoryExists = False
+    
+    output_dir_chars = args.output_dir[:-1] # Strip the "/" from the back of the requested output directory
+    
+    files = os.listdir() # Make a list of all files and folders and check if our requested output directory exists
+    for file in files:
+        if file == output_dir_chars:
+            directoryExists = True
 
+    if not directoryExists: # If our requested output directory doesn't exist, make it!
+        os.mkdir(args.output_dir)
+    
+    for file in args.files:
+        if file == "*.dm": # Check if we should find all encrypted files in our parent directory
+            args.files = files
+        
     ext = ".dm"
     failed = []
     for file in args.files:
@@ -219,11 +235,12 @@ def main(argv=None):
             out_filename = file
         # make output path
         outfile = os.path.abspath(os.path.join(args.output_dir, out_filename))
-        try:
-            decrypt_file(file, outfile, bytes(args.gmail, "utf-8"))
-        except Exception as e:
-            print(f"Error decrypting '{file}': {e}")
-            failed.append(file)
+        if file.endswith(ext): # Make sure we are only trying to decrypt .dm files!
+            try:
+                decrypt_file(file, outfile, bytes(args.gmail, "utf-8"))
+            except Exception as e:
+                print(f"Error decrypting '{file}': {e}")
+                failed.append(file)
     if failed:
         print(
             "Failed to decrypt file{}: {}".format(
