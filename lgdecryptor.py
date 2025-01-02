@@ -128,7 +128,7 @@ def get_lgeflock_iv_imagestart(image_path):
     cipher_file.close()
 
     # define regex search strings
-    lgeflock_searchstring = b'lge/flock(L[0-9\-_]+@lge.com)'
+    lgeflock_searchstring = b'lge/flock(L[0-9\\-_]+@lge.com)'
     lgeid_searchstring = b'LGEID2.+\r\n'
 
     # look up lgeflock:
